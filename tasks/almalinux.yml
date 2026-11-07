@@ -2,6 +2,10 @@
 
 # https://wiki.almalinux.org/documentation/nvidia.html#installation-of-gpu-driver
 
+# TODO set up local mirror
+# - name: Set up local mirror
+#   ansible.builtin.yum_repository:
+
 - name: Ensure driver repo is available
   become: true
   ansible.builtin.dnf:
@@ -11,6 +15,8 @@
   become: true
   ansible.builtin.dnf:
     name: "{{ nvidia_gpu_driver_packages.almalinux }}"
-  notify: System reboot
+  notify:
+    - Rebuild initramfs
+    - Reboot Host
 
 ...

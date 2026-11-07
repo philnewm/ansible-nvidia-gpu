@@ -79,7 +79,7 @@
   ansible.builtin.dnf:
     name: "{{ nvidia_gpu_driver_packages.rocky }}"
     state: present
-  notify: System reboot
+  notify: Reboot Host
 
 - name: Get current kernel arguments
   become: true
@@ -103,6 +103,6 @@
       --update-kernel=ALL
   register: kernel_update
   changed_when: kernel_update.rc == 0
-  notify: System reboot
+  notify: Reboot Host
 
 ...
