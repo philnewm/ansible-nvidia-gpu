@@ -1,4 +1,7 @@
 ---
-
+- name: No verify
+  when: ansible_facts.virtualization_type in ["docker", "podman", "lxc", "containerd", "container"]
+  ansible.builtin.debug:
+    msg: No verify in container environment
 
 ...

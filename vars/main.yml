@@ -1,5 +1,12 @@
 ---
 
-ansible_role_template: "Default role name still in use."
+nvidia_gpu_driver_packages:
+  almalinux:
+    - nvidia-open
+    - nvidia-driver-cuda  # contains nvidia-smi
+  rocky:
+    - nvidia-open
+  centos:
+    - nvidia-open  # use same as rocky
 
 ...

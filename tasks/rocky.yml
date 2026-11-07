@@ -1,0 +1,108 @@
+---
+
+# https://docs.rockylinux.org/10/desktop/display/installing_nvidia_gpu_drivers/
+
+- name: Ensure epel repo is present
+  become: true
+  ansible.builtin.dnf:
+    name: epel-release
+
+- name: Ensure DNF plugins are present
+  become: true
+  ansible.builtin.dnf:
+    name: dnf-plugins-core
+    state: present
+
+- name: Enable crb repository
+  become: true
+  community.general.dnf_config_manager:
+    name: crb
+    state: enabled
+
+- name: Ensure grubby is present
+  become: true
+  ansible.builtin.dnf:
+    name: grubby
+    state: present
+
+- name: Ensure development tools are present
+  become: true
+  ansible.builtin.dnf:
+    name: "@Development Tools"
+    state: present
+
+- name: Ensure kernel dev packages are present
+  become: true
+  ansible.builtin.dnf:
+    name:
+      - kernel-devel-matched
+      - kernel-headers
+
+- name: Add nvidia cude repository
+  become: true
+  vars:
+    cuda_repo_name: "cuda-rhel{{ ansible_facts.distribution_major_version }}"
+    cuda_repo_url: >-
+      https://developer.download.nvidia.com/compute/cuda/repos/rhel{{ ansible_facts.distribution_major_version }}/{{ ansible_facts.architecture }}/{{ cuda_repo_name }}.repo
+  ansible.builtin.get_url:
+    url: "{{ cuda_repo_url }}"
+    dest: "/etc/yum.repos.d/{{ cuda_repo_name }}.repo"
+    mode: "0644"
+
+- name: Expire DNF metadata cache
+  become: true
+  ansible.builtin.command:
+    cmd: dnf clean expire-cache
+  changed_when: false
+
+- name: Check nvidia dkms module stream
+  become: true
+  when: ansible_facts.distribution_major_version | int == 9
+  ansible.builtin.command:
+    cmd: dnf module list --enabled nvidia-driver
+  register: nvidia_module
+  failed_when: false
+  changed_when: false
+
+- name: Enable nvidia open dkms module stream
+  become: true
+  when:
+    - ansible_facts.distribution_major_version | int == 9
+    - "'open-dkms' not in nvidia_module.stdout"
+  ansible.builtin.command:
+    cmd: dnf module enable -y nvidia-driver:open-dkms
+  register: dkms_module
+  changed_when: dkms_module.rc == 0
+
+- name: Install driver package
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ nvidia_gpu_driver_packages.rocky }}"
+    state: present
+  notify: System reboot
+
+- name: Get current kernel arguments
+  become: true
+  ansible.builtin.command:
+    cmd: grubby --info=ALL
+  register: grubby_info
+  changed_when: false
+
+- name: Disable Nouveau kernel driver
+  become: true
+  vars:
+    kernel_args: "{{ grubby_info.stdout | regex_findall('(?m)^args=\"([^\"]*)\"') }}"
+  when: >-
+    kernel_args | reject('search', '(^|\s)nouveau\.modeset=0(\s|$)') | list | length > 0
+    or
+    kernel_args | reject('search', '(^|\s)rd\.driver\.blacklist=nouveau(\s|$)') | list | length > 0
+  ansible.builtin.command:
+    cmd: >-
+      grubby
+      --args="nouveau.modeset=0 rd.driver.blacklist=nouveau"
+      --update-kernel=ALL
+  register: kernel_update
+  changed_when: kernel_update.rc == 0
+  notify: System reboot
+
+...

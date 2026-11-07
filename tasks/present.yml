@@ -1,4 +1,7 @@
 ---
 
+- name: "Install nvidia drivers for {{ ansible_facts.distribution }}"
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_facts.distribution | lower }}.yml"
 
 ...
