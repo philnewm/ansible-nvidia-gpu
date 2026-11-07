@@ -1,8 +1,9 @@
 ---
 
-- name: Remove unused dependencies
+- name: Uninstall driver packages
   become: true
   ansible.builtin.package:
-    autoremove: true
+    name: "{{ nvidia_gpu_driver_packages[ansible_facts.distribution | lower] }}"
+    state: absent
 
 ...

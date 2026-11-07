@@ -1,3 +1,8 @@
 ---
 
+- name: System reboot
+  become: true
+  when: ansible_facts.virtualization_type not in ["docker", "podman", "lxc", "containerd", "container"]
+  ansible.builtin.reboot:
+
 ...

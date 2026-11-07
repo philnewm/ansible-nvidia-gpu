@@ -1,0 +1,16 @@
+---
+
+- name: Ensure epel next is present
+  become: true
+  when:
+    - ansible_facts.distribution | lower == "centos"
+    - ansible_facts.distribution_major_version | int == 9
+  ansible.builtin.dnf:
+    name: epel-next-release
+    state: present
+
+- name: Include rockylinux install tasks
+  ansible.builtin.include_tasks:
+    file: rocky.yml
+
+...

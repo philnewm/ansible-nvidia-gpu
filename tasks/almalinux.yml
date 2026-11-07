@@ -1,0 +1,16 @@
+---
+
+# https://wiki.almalinux.org/documentation/nvidia.html#installation-of-gpu-driver
+
+- name: Ensure driver repo is available
+  become: true
+  ansible.builtin.dnf:
+    name: almalinux-release-nvidia-driver
+
+- name: Install driver packages
+  become: true
+  ansible.builtin.dnf:
+    name: "{{ nvidia_gpu_driver_packages.almalinux }}"
+  notify: System reboot
+
+...
