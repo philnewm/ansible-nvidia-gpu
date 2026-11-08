@@ -1,7 +1,7 @@
 ---
 
 - name: Include vars file if provided
-  when: nvidia_gpu_vars_file | length > 0
+  when: nvidia_gpu_vars_file != None
   ansible.builtin.include_vars:
     file: "{{ nvidia_gpu_vars_file }}"
 
