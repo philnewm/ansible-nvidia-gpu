@@ -8,11 +8,10 @@
     name: almalinux-release-nvidia-driver
 
 - name: Configure local repo
-  when: nvidia_gpu_local_mirror is defined
+  when: nvidia_gpu_local_mirror != None
   block:
     - name: Configure local repository
       become: true
-      when: nvidia_gpu_local_mirror is defined
       vars:
         local_repo: nvidia_gpu_local_mirror
       ansible.builtin.yum_repository:
