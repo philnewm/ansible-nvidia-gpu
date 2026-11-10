@@ -17,11 +17,11 @@
       vars:
         local_repo: "{{ nvidia_gpu_local_mirror }}"
       ansible.builtin.yum_repository:
-        name: "{{ local_repo.prefix | lower }}-{{ local_repo.name | lower }}"
-        description: "{{ local_repo.prefix }} {{ ansible_facts.distribution }} $releasever - NVIDIA Driver & CUDA"
-        file: "{{ ansible_facts.distribution | lower }}-{{ local_repo.name }}-{{ local_repo.prefix | lower }}"
-        baseurl: "{{ local_repo.base_path }}/{{ local_repo.package_path }}"
-        gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-$releasever,file:///etc/pki/rpm-gpg/RPM-GPG-KEY-NVIDIA-CUDA-$releasever"
+        name: "{{ local_repo.name }}"
+        description: "{{ local_repo.description }}"
+        file: "{{ local_repo.file }}"
+        baseurl: "{{ local_repo.base_url }}"
+        gpgkey: "{{ local_repo.gpgkey }}"
         gpgcheck: "{{ local_repo.gpgcheck | default(true) }}"
         repo_gpgcheck: "{{ local_repo.repo_gpgcheck | default(true) }}"
         enabled: "{{ local_repo.enabled | default(true) }}"
