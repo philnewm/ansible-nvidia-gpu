@@ -6,6 +6,8 @@
   become: true
   ansible.builtin.dnf:
     name: almalinux-release-nvidia-driver
+    state: present
+  register: cuda_repo
 
 - name: Configure local repo
   when: nvidia_gpu_local_mirror != None
@@ -13,13 +15,13 @@
     - name: Configure local repository
       become: true
       vars:
-        local_repo: nvidia_gpu_local_mirror
+        local_repo: "{{ nvidia_gpu_local_mirror }}"
       ansible.builtin.yum_repository:
         name: "{{ local_repo.prefix | lower }}-{{ local_repo.name | lower }}"
-        description: "{{ local_repo.prefix }} {{ ansible_facts.ansible_distribution }} $releasever - {{ local_repo.name }}"
-        file: "nvidia-{{ local_repo.name }}-{{ local_repo.prefix | lower }}"
-        baseurl: "{{ nvidia_gpu_local_mirror }}/{{ local_repo.path }}"
-        gpgkey: "https://developer.download.nvidia.com/compute/cuda/repos/GPGKEY"
+        description: "{{ local_repo.prefix }} {{ ansible_facts.distribution }} $releasever - NVIDIA Driver & CUDA"
+        file: "{{ ansible_facts.distribution | lower }}-{{ local_repo.name }}-{{ local_repo.prefix | lower }}"
+        baseurl: "{{ local_repo.base_path }}/{{ local_repo.package_path }}"
+        gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-AlmaLinux-$releasever,file:///etc/pki/rpm-gpg/RPM-GPG-KEY-NVIDIA-CUDA-$releasever"
         gpgcheck: "{{ local_repo.gpgcheck | default(true) }}"
         repo_gpgcheck: "{{ local_repo.repo_gpgcheck | default(true) }}"
         enabled: "{{ local_repo.enabled | default(true) }}"
@@ -29,30 +31,26 @@
         cost: "{{ local_repo.cost | default(100) }}"
         priority: "{{ local_repo.priority | default(omit) }}"
         metadata_expire: "{{ local_repo.metadata_expire | default('6h') }}"
-        skip_if_unavailable: "{{ local_repo.skip_if_unavailable | true }}"
+        skip_if_unavailable: "{{ local_repo.skip_if_unavailable | default(true) }}"
         mode: "0644"
         owner: "root"
         group: "root"
         state: present
-      register: yum_repo_setup
+      register: cuda_repo
 
-    - name: Clean dnf cache
-      become: true
-      when: yum_repo_setup.changed  # noqa: no-handler
-      ansible.builtin.command:
-        cmd: dnf clean all
-      register: dnf_clean_result
-      changed_when: dnf_clean_result.rc == 0
-
-    - name: Update dnf metadata cache
-      become: true
-      ansible.builtin.dnf:
-        update_cache: true
+- name: Clean dnf cache
+  become: true
+  when: cuda_repo.changed  # noqa: no-handler
+  ansible.builtin.command:
+    cmd: dnf clean all
+  register: dnf_clean_result
+  changed_when: dnf_clean_result.rc == 0
 
 - name: Install driver packages
   become: true
   ansible.builtin.dnf:
     name: "{{ nvidia_gpu_driver_packages.almalinux }}"
+    update_cache: true
   notify:
     - Rebuild initramfs
     - Reboot Host

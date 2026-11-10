@@ -48,9 +48,38 @@
     url: "{{ cuda_repo_url }}"
     dest: "/etc/yum.repos.d/{{ cuda_repo_name }}.repo"
     mode: "0644"
+  register: cuda_repo
+
+- name: Configure local repository
+  become: true
+  when: nvidia_gpu_local_mirror != None
+  vars:
+    local_repo: "{{ nvidia_gpu_local_mirror }}"
+  ansible.builtin.yum_repository:
+    name: "{{ local_repo.prefix | lower }}-{{ local_repo.name | lower }}"
+    description: "{{ local_repo.prefix }} {{ ansible_facts.distribution }} $releasever - {{ local_repo.name }}"
+    file: "nvidia-{{ local_repo.name }}-{{ local_repo.prefix | lower }}"
+    baseurl: "{{ nvidia_gpu_local_mirror.base_path }}/{{ local_repo.package_path }}"
+    gpgkey: "https://developer.download.nvidia.com/compute/cuda/repos/GPGKEY"
+    gpgcheck: "{{ local_repo.gpgcheck | default(true) }}"
+    repo_gpgcheck: "{{ local_repo.repo_gpgcheck | default(true) }}"
+    enabled: "{{ local_repo.enabled | default(true) }}"
+    countme: "{{ local_repo.countme | default(true) }}"
+    retries: "{{ local_repo.retries | default(1) }}"
+    timeout: "{{ local_repo.timeout | default(1) }}"
+    cost: "{{ local_repo.cost | default(100) }}"
+    priority: "{{ local_repo.priority | default(omit) }}"
+    metadata_expire: "{{ local_repo.metadata_expire | default('6h') }}"
+    skip_if_unavailable: "{{ local_repo.skip_if_unavailable | default(true) }}"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+    state: present
+  register: cuda_repo
 
 - name: Expire DNF metadata cache
   become: true
+  when: cuda_repo.changed  # noqa: no-handler
   ansible.builtin.command:
     cmd: dnf clean expire-cache
   changed_when: false
@@ -79,6 +108,7 @@
   ansible.builtin.dnf:
     name: "{{ nvidia_gpu_driver_packages.rocky }}"
     state: present
+    update_cache: true
   notify: Reboot Host
 
 - name: Get current kernel arguments
