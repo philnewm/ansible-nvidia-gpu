@@ -49,8 +49,6 @@
   ansible.builtin.dnf:
     name: "{{ nvidia_gpu_driver_packages.almalinux }}"
     update_cache: true
-  notify:
-    - Rebuild initramfs
-    - Reboot Host
+  notify: Reboot Host
 
 ...

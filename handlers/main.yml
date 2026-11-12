@@ -1,17 +1,5 @@
 ---
 
-# required due to https://github.com/AlmaLinux/almalinux-deploy/issues/272
-- name: Rebuild initramfs
-  become: true
-  when: ansible_facts.virtualization_type not in ["docker", "podman", "lxc", "containerd", "container"]
-  ansible.builtin.command:
-    argv:
-      - /usr/bin/dracut
-      - --force
-      - "/boot/initramfs-{{ ansible_facts['kernel'] }}.img"
-      - "{{ ansible_facts['kernel'] }}"
-  changed_when: true
-
 - name: Reboot Host
   become: true
   when: ansible_facts.virtualization_type not in ["docker", "podman", "lxc", "containerd", "container"]
