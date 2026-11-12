@@ -9,34 +9,32 @@
     state: present
   register: cuda_repo
 
-- name: Configure local repo
+- name: Configure local repository
+  become: true
+  vars:
+    local_repo: "{{ nvidia_gpu_local_mirror }}"
   when: nvidia_gpu_local_mirror != None
-  block:
-    - name: Configure local repository
-      become: true
-      vars:
-        local_repo: "{{ nvidia_gpu_local_mirror }}"
-      ansible.builtin.yum_repository:
-        name: "{{ local_repo.name }}"
-        description: "{{ local_repo.description }}"
-        file: "{{ local_repo.file }}"
-        baseurl: "{{ local_repo.base_url }}"
-        gpgkey: "{{ local_repo.gpgkey }}"
-        gpgcheck: "{{ local_repo.gpgcheck | default(true) }}"
-        repo_gpgcheck: "{{ local_repo.repo_gpgcheck | default(true) }}"
-        enabled: "{{ local_repo.enabled | default(true) }}"
-        countme: "{{ local_repo.countme | default(true) }}"
-        retries: "{{ local_repo.retries | default(1) }}"
-        timeout: "{{ local_repo.timeout | default(1) }}"
-        cost: "{{ local_repo.cost | default(100) }}"
-        priority: "{{ local_repo.priority | default(omit) }}"
-        metadata_expire: "{{ local_repo.metadata_expire | default('6h') }}"
-        skip_if_unavailable: "{{ local_repo.skip_if_unavailable | default(true) }}"
-        mode: "0644"
-        owner: "root"
-        group: "root"
-        state: present
-      register: cuda_repo
+  ansible.builtin.yum_repository:
+    name: "{{ local_repo.name }}"
+    description: "{{ local_repo.description }}"
+    file: "{{ local_repo.file }}"
+    baseurl: "{{ local_repo.base_url }}"
+    gpgkey: "{{ local_repo.gpgkey }}"
+    gpgcheck: "{{ local_repo.gpgcheck | default(true) }}"
+    repo_gpgcheck: "{{ local_repo.repo_gpgcheck | default(true) }}"
+    enabled: "{{ local_repo.enabled | default(true) }}"
+    countme: "{{ local_repo.countme | default(true) }}"
+    retries: "{{ local_repo.retries | default(1) }}"
+    timeout: "{{ local_repo.timeout | default(1) }}"
+    cost: "{{ local_repo.cost | default(100) }}"
+    priority: "{{ local_repo.priority | default(omit) }}"
+    metadata_expire: "{{ local_repo.metadata_expire | default('6h') }}"
+    skip_if_unavailable: "{{ local_repo.skip_if_unavailable | default(true) }}"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+    state: present
+  register: cuda_repo
 
 - name: Clean dnf cache
   become: true
