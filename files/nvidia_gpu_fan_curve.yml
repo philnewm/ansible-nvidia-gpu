@@ -1,0 +1,23 @@
+---
+
+gpu: 0
+fan: 0
+interval: 2
+
+curve:
+  - temperature: 40
+    fan_speed: 30
+  - temperature: 55
+    fan_speed: 30
+  - temperature: 60
+    fan_speed: 35
+  - temperature: 65
+    fan_speed: 55
+  - temperature: 70
+    fan_speed: 75
+  - temperature: 75
+    fan_speed: 90
+  - temperature: 85
+    fan_speed: 100
+
+...

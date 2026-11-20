@@ -1,0 +1,15 @@
+
+[Unit]
+Description={{ nvidia_gpu_model }} Fan Controller
+After=default.target
+
+[Service]
+Type=simple
+User=root
+ExecStart={{ nvidia_gpu_fan_curve_venv_path }}/bin/python {{ nvidia_gpu_fan_curve_script }}
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+
+[Install]
+WantedBy=default.target
