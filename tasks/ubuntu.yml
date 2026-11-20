@@ -1,0 +1,10 @@
+---
+
+- name: Install driver
+  ansible.builtin.apt:
+    name: "{{ nvidia_gpu_ubuntu_package }}"
+    state: present
+    update_cache: true
+  notify: Reboot Host
+
+...

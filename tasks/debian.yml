@@ -1,0 +1,43 @@
+---
+
+- name: Enable Debian non-free-firmware repository
+  become: true
+  when: ansible_facts.distribution | lower == "debian"
+  ansible.builtin.deb822_repository:
+    name: debian
+    types:
+      - deb
+    uris:
+      - http://deb.debian.org/debian
+    suites:
+      - trixie
+      - trixie-updates
+    components:
+      - main
+      - non-free
+      - contrib
+      - non-free-firmware
+    signed_by: /usr/share/keyrings/debian-archive-keyring.gpg
+    state: present
+    install_python_debian: true
+
+- name: Install prerequisites
+  become: true
+  ansible.builtin.apt:
+    name:
+      - "linux-headers-{{ ansible_facts['kernel'] }}"
+      - build-essential
+      - dkms
+    state: present
+    update_cache: true
+
+- name: Install nvidia packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - nvidia-driver
+      - nvidia-kernel-dkms
+    state: present
+  notify: Reboot Host
+
+...
