@@ -4,4 +4,6 @@ state: present
 nvidia_gpu_vars_file: null
 nvidia_gpu_local_mirror: null
 
+nvidia_gpu_ubuntu_package: "nvidia-driver-620-open"
+
 ...
