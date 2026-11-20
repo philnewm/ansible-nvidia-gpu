@@ -1,0 +1,108 @@
+#!{{ nvidia_gpu_fan_curve_venv_path }}/bin/python
+
+import signal
+import time
+from dataclasses import dataclass
+from types import FrameType
+from typing import TypedDict, cast
+
+import pynvml as nv
+import yaml
+
+
+@dataclass(frozen=True)
+class CurvePoint:
+    temperature: int
+    fan_speed: int
+
+
+@dataclass(frozen=True)
+class Config:
+    gpu: int
+    fan: int
+    interval: float
+    curve: list[CurvePoint]
+
+
+class ConfigData(TypedDict):
+    gpu: int
+    fan: int
+    interval: float
+    curve: list[dict[str, int]]
+
+
+def load_config(path: str) -> Config:
+    with open(path) as file:
+        data = cast(ConfigData, yaml.safe_load(file))
+
+    return Config(
+        gpu=data["gpu"],
+        fan=data["fan"],
+        interval=data["interval"],
+        curve=[CurvePoint(**point) for point in data["curve"]],
+    )
+
+
+config = load_config("{{ nvidia_gpu_fan_curve_config }}")
+
+
+def fan_speed(temp: int) -> int:
+    if temp <= config.curve[0].temperature:
+        return config.curve[0].fan_speed
+
+    for lower, upper in zip(config.curve, config.curve[1:]):
+        if temp <= upper.temperature:
+            return round(
+                lower.fan_speed
+                + (temp - lower.temperature)
+                * (upper.fan_speed - lower.fan_speed)
+                / (upper.temperature - lower.temperature)
+            )
+
+    return config.curve[-1].fan_speed
+
+
+def stop(signum: int, frame: FrameType | None) -> None:
+    raise SystemExit(0)
+
+
+def main() -> None:
+    signal.signal(signal.SIGTERM, stop)
+
+    nv.nvmlInit()
+
+    try:
+        gpu = nv.nvmlDeviceGetHandleByIndex(config.gpu)
+        last_speed: int | None = None
+
+        try:
+            while True:
+                temp: int = nv.nvmlDeviceGetTemperature(
+                    gpu, nv.NVML_TEMPERATURE_GPU
+                )
+                target = fan_speed(temp)
+
+                if last_speed is None or target > last_speed:
+                    # Ramp up immediately
+                    speed = target
+                else:
+                    # Ramp down by at most 2% per cycle
+                    speed = max(target, last_speed - 2)
+
+                if speed != last_speed:
+                    nv.nvmlDeviceSetFanSpeed_v2(gpu, config.fan, speed)
+                    print(f"GPU: {temp}°C | Fan: {speed}%", flush=True)
+                    last_speed = speed
+
+                time.sleep(config.interval)
+
+        finally:
+            print("Restoring automatic fan control", flush=True)
+            nv.nvmlDeviceSetDefaultFanSpeed_v2(gpu, config.fan)
+
+    finally:
+        nv.nvmlShutdown()
+
+
+if __name__ == "__main__":
+    main()

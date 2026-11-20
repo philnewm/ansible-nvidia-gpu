@@ -1,0 +1,60 @@
+---
+
+- name: Ensure lspci is available
+  become: true
+  ansible.builtin.package:
+    name: pciutils
+    state: present
+
+- name: Get PCI devices
+  ansible.builtin.command:
+    cmd: lspci -D
+  register: pci_devices
+  changed_when: false
+
+- name: Extract first NVIDIA GPU model
+  ansible.builtin.set_fact:
+    nvidia_gpu_model: >-
+      {{
+        pci_devices.stdout_lines
+        | select('search', 'VGA compatible controller|3D controller')
+        | select('search', 'NVIDIA')
+        | first
+        | regex_search('\[([^]]+)\]', '\1')
+        | first
+      }}
+
+- name: Create fan curve venv
+  become: true
+  ansible.builtin.pip:
+    name: pynvml
+    virtualenv: "{{ nvidia_gpu_fan_curve_venv_path }}"
+
+- name: Copy fan curve config
+  become: true
+  ansible.builtin.copy:
+    src: nvidia_gpu_fan_curve.yml
+    dest: "{{ nvidia_gpu_fan_curve_config }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Copy fan curve script
+  become: true
+  ansible.builtin.template:
+    src: nvidia_gpu_fan_curve.py.j2
+    dest: "{{ nvidia_gpu_fan_curve_script }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Template service file
+  become: true
+  ansible.builtin.template:
+    src: nvidia_gpu_fan_curve.service.j2
+    dest: "{{ nvidia_gpu_fan_curve_service }}"
+    owner: root
+    group: root
+    mode: "0755"
+
+...

@@ -3,5 +3,6 @@
 state: present
 nvidia_gpu_vars_file: null
 nvidia_gpu_local_mirror: null
+nvidia_gpu_custom_fan_curve: false  # assumes only one nvidia gpu present
 
 ...
