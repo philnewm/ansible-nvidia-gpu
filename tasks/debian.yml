@@ -2,7 +2,6 @@
 
 - name: Enable Debian non-free-firmware repository
   become: true
-  when: ansible_facts.distribution | lower == "debian"
   ansible.builtin.deb822_repository:
     name: debian
     types:
@@ -25,18 +24,16 @@
   become: true
   ansible.builtin.apt:
     name:
-      - "linux-headers-{{ ansible_facts['kernel'] }}"
+      - "{{ debian_kernel_headers }}"
       - build-essential
       - dkms
     state: present
     update_cache: true
 
-- name: Install nvidia packages
+- name: Install driver packages
   become: true
   ansible.builtin.apt:
-    name:
-      - nvidia-driver
-      - nvidia-kernel-dkms
+    name: "{{ nvidia_gpu_driver_packages[ansible_facts.distribution | lower] }}"
     state: present
   notify: Reboot Host
 

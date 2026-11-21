@@ -2,7 +2,7 @@
 
 - name: Install driver
   ansible.builtin.apt:
-    name: "{{ nvidia_gpu_ubuntu_package }}"
+    name: "{{ nvidia_gpu_driver_packages[ansible_facts.distribution | lower] }}"
     state: present
     update_cache: true
   notify: Reboot Host
