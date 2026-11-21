@@ -24,10 +24,25 @@
         | first
       }}
 
+- name: Ensure epel repo
+  become: true
+  when: ansible_facts.os_family | lower == "redhat"
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+
+- name: Ensure required venv system packages are installed
+  become: true
+  ansible.builtin.package:
+    name: "{{ nvidia_gpu_venv_system_packages[ansible_facts.os_family | lower] }}"
+    state: present
+
 - name: Create fan curve venv
   become: true
   ansible.builtin.pip:
-    name: pynvml
+    name:
+      - pynvml
+      - yaml
     virtualenv: "{{ nvidia_gpu_fan_curve_venv_path }}"
 
 - name: Copy fan curve config
