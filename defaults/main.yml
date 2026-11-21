@@ -4,6 +4,22 @@ state: present
 nvidia_gpu_vars_file: null
 nvidia_gpu_local_mirror: null
 
-nvidia_gpu_ubuntu_package: "nvidia-driver-620-open"
+nvidia_gpu_version: 620
+nvidia_gpu_version_ubuntu: 615
+nvidia_gpu_version_debian: 550.163.01-2
+
+nvidia_gpu_driver_packages:
+  almalinux:
+    - "nvidia-open-{{ nvidia_gpu_version }}"
+    - nvidia-driver-cuda  # contains nvidia-smi
+  rocky:
+    - "nvidia-open-{{ nvidia_gpu_version }}"
+  centos:
+    - "nvidia-open-{{ nvidia_gpu_version }}"  # use same as rocky
+  ubuntu:
+    - "nvidia-driver-{{ nvidia_gpu_version_ubuntu }}-open"
+  debian:
+    - "nvidia-driver={{ nvidia_gpu_version_debian }}"
+    - "nvidia-kernel-dkms={{ nvidia_gpu_version_debian }}"
 
 ...
