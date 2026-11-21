@@ -72,4 +72,12 @@
     group: root
     mode: "0755"
 
+- name: Start fan curve service
+  become: true
+  ansible.builtin.systemd_service:
+    name: nvidia_gpu_fan_curve
+    state: started
+    enabled: true
+    daemon_reload: true
+
 ...
