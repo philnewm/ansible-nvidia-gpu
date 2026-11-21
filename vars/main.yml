@@ -1,6 +1,6 @@
 ---
 
-debian_kernel_headers: "{{ ansible_module_running_in_container | ternary(
+debian_kernel_headers: "{{ (ansible_facts.virtualization_type in ['docker', 'podman', 'lxc', 'containerd', 'container']) | ternary(
           'linux-headers-amd64',
           'linux-headers-' ~ ansible_facts.kernel
         )
@@ -19,6 +19,5 @@ nvidia_gpu_fan_curve_venv_path: "{{ nvidia_gpu_fan_path }}/venv"
 nvidia_gpu_fan_curve_config: "{{ nvidia_gpu_fan_path }}/gpu-fan-curve.yml"
 nvidia_gpu_fan_curve_script: "{{ nvidia_gpu_fan_path }}/nvidia_gpu_fan_curve.py"
 nvidia_gpu_fan_curve_service: "/etc/systemd/system/nvidia_gpu_fan_curve.service"
-ansible_module_running_in_container: false
 
 ...
