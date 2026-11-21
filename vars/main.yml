@@ -6,6 +6,14 @@ debian_kernel_headers: "{{ ansible_module_running_in_container | ternary(
         )
         }}"
 
+nvidia_gpu_venv_system_packages:
+  redhat:
+    - python3-virtualenv
+    - python3-packaging
+  debian:
+    - python3-venv
+    - python3-packaging
+
 nvidia_gpu_fan_path: "/opt/gpu_fan"
 nvidia_gpu_fan_curve_venv_path: "{{ nvidia_gpu_fan_path }}/venv"
 nvidia_gpu_fan_curve_config: "{{ nvidia_gpu_fan_path }}/gpu-fan-curve.yml"
