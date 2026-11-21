@@ -42,7 +42,7 @@
   ansible.builtin.pip:
     name:
       - pynvml
-      - yaml
+      - PyYaml
     virtualenv: "{{ nvidia_gpu_fan_curve_venv_path }}"
 
 - name: Copy fan curve config
