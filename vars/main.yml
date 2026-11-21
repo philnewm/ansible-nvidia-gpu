@@ -1,12 +1,9 @@
 ---
 
-nvidia_gpu_driver_packages:
-  almalinux:
-    - nvidia-open
-    - nvidia-driver-cuda  # contains nvidia-smi
-  rocky:
-    - nvidia-open
-  centos:
-    - nvidia-open  # use same as rocky
+debian_kernel_headers: "{{ ansible_module_running_in_container | ternary(
+          'linux-headers-amd64',
+          'linux-headers-' ~ ansible_facts.kernel
+        )
+        }}"
 
 ...
