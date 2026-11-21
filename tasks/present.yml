@@ -9,4 +9,9 @@
   ansible.builtin.include_tasks:
     file: "{{ ansible_facts.distribution | lower }}.yml"
 
+- name: Custom fan control
+  when: nvidia_gpu_custom_fan_curve
+  ansible.builtin.include_tasks:
+    file: fan_control.yml
+
 ...
