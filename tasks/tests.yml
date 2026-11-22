@@ -1,6 +1,6 @@
 ---
 - name: No verify
-  when: ansible_facts.virtualization_type not in ["docker", "podman", "lxc", "containerd", "container"]
+  when: ansible_module_running_in_container | default(false)
   ansible.builtin.debug:
     msg: No verify in container environment
 

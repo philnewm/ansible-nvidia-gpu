@@ -1,6 +1,6 @@
 ---
 
-debian_kernel_headers: "{{ (ansible_facts.virtualization_type in ['docker', 'podman', 'lxc', 'containerd', 'container']) | ternary(
+debian_kernel_headers: "{{ (ansible_module_running_in_container | default(false)) | ternary(
           'linux-headers-amd64',
           'linux-headers-' ~ ansible_facts.kernel
         )
